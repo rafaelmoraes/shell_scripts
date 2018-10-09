@@ -42,8 +42,8 @@ apt-get install libpq-dev -y --no-install-recommends # PostgreSQL gem requiremen
 
 # Install ruby if found a .ruby-version
 if [ -e .ruby-version ]; then
-  .$HOME/.rbenv/bin/rbenv install "$(cat /tmp/.ruby-version)"
-  .$HOME/.rbenv/bin/rbenv global "$(cat /tmp/.ruby-version)"
+  .$HOME/.rbenv/bin/rbenv install "$(cat .ruby-version)"
+  .$HOME/.rbenv/bin/rbenv global "$(cat .ruby-version)"
   $HOME/.rbenv/shims/gem install bundle
 fi
 
