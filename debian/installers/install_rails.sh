@@ -31,10 +31,11 @@ apt-get install -y --no-install-recommends \
     libgdbm-dev
 
 # Install RBENV(https://github.com/rbenv/rbenv) and yours helpers
-git clone https://github.com/rbenv/rbenv.git $HOME/.rbenv
-git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> $HOME/.bashrc
-echo 'eval "$(rbenv init -)"' >> $HOME/.bashrc
+git clone https://github.com/rbenv/rbenv.git "$HOME/.rbenv"
+git clone https://github.com/sstephenson/ruby-build.git \
+    "$HOME/.rbenv/plugins/ruby-build"
+echo "export PATH=\"$HOME/.rbenv/bin:$PATH\"" >> "$HOME/.bashrc"
+echo "eval \"$(rbenv init -)\"" >> "$HOME/.bashrc"
 
 # Install Rails dependencies
 apt-get install nodejs -y --no-install-recommends
@@ -42,14 +43,14 @@ apt-get install libpq-dev -y --no-install-recommends # PostgreSQL gem requiremen
 
 # Install ruby if found a .ruby-version
 if [ -e .ruby-version ]; then
-  $HOME/.rbenv/bin/rbenv install "$(cat .ruby-version)"
-  $HOME/.rbenv/bin/rbenv global "$(cat .ruby-version)"
-  $HOME/.rbenv/shims/gem install bundle
+  "$HOME/.rbenv/bin/rbenv" install "$(cat .ruby-version)"
+  "$HOME/.rbenv/bin/rbenv" global "$(cat .ruby-version)"
+  "$HOME/.rbenv/shims/gem" install bundle
 fi
 
 # Install thee GEMS if found a Gemfile
 if [ -e Gemfile ]; then
-  $HOME/.rbenv/shims/bundle install --gemfile=Gemfile
+  "$HOME/.rbenv/shims/bundle" install --gemfile=Gemfile
 fi
 
 # Cleanup
