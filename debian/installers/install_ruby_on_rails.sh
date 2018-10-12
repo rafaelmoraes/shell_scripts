@@ -53,5 +53,8 @@ if [ -e Gemfile ]; then
   "$HOME/.rbenv/shims/bundle" install --gemfile=Gemfile
 fi
 
-# Cleanup
-rm -rf /var/lib/apt/lists/*;
+# Cleanup if running in docker container
+if grep -q 'docker' '/proc/1/cgroup'; then
+    echo 'Cleanup...'
+    rm -rf /var/lib/apt/lists/*;
+fi
