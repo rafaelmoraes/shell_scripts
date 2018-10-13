@@ -35,7 +35,7 @@ git clone https://github.com/rbenv/rbenv.git "$HOME/.rbenv"
 git clone https://github.com/sstephenson/ruby-build.git \
     "$HOME/.rbenv/plugins/ruby-build"
 echo "export PATH=\"$HOME/.rbenv/bin:$PATH\"" >> "$HOME/.bashrc"
-echo "eval \"$(rbenv init -)\"" >> "$HOME/.bashrc"
+echo "eval \"\$(rbenv init -)\"" >> "$HOME/.bashrc"
 
 # Install Rails dependencies
 apt-get install nodejs -y --no-install-recommends
