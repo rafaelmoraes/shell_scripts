@@ -1,10 +1,10 @@
 #!/bin/sh
 
 FONT_URL=${font_url:-"https://raw.githubusercontent.com/powerline/fonts/master/RobotoMono/Roboto%20Mono%20for%20Powerline.ttf"}
-CONFIG_URL=${config_url:-"https://raw.githubusercontent.com/rafaelmoraes/dockerfiles/master/vscode/local.conf"}
+CONFIG_URL=${config_url:-"https://raw.githubusercontent.com/rafaelmoraes/linux_config_files/master/fonts/local.conf"}
 FONT_DIR=${font_dir:-"$HOME/.local/share/fonts"}
 
-mkdir -p $FONT_DIR
+mkdir -p "$FONT_DIR"
 
 if [ ! -x curl ]; then
     apt-get update && apt-get install curl -y
