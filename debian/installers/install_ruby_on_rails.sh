@@ -1,5 +1,5 @@
 #!/bin/sh
-## Installs a rails development environment on linux distribution Debian
+## Installs a Ruby on Rails environment on linux distribution Debian
 export LC_ALL=C
 export LANG=en_US.utf8
 export LANGUAGE=en_US.utf8
