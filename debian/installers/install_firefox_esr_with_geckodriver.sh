@@ -17,7 +17,7 @@ apt update && apt install -y --no-install-recommends \
 	gnupg
 
 # Install Firefox ESR
-apt install -y firefox-esr
+apt install -y --no-install-recommends firefox-esr
 
 # Install Geckodrive
 curl -OL "$GECKODRIVER_URL" &&
