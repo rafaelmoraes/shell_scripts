@@ -3,6 +3,7 @@
 
 if [ "$(id -u)" != "0" ]; then
   echo "This script requires superuser access."
+  exit 1
 fi
 
 HEROKU_CLI_REPOSITORY_URL='https://cli-assets.heroku.com/apt'
