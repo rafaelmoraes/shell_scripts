@@ -37,9 +37,17 @@ git clone https://github.com/sstephenson/ruby-build.git \
 echo "export PATH=\"$HOME/.rbenv/bin:$PATH\"" >> "$HOME/.bashrc"
 echo "eval \"\$(rbenv init -)\"" >> "$HOME/.bashrc"
 
+# Add Yarn respository
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | \
+		tee /etc/apt/sources.list.d/yarn.list && apt-get update
+
 # Install Rails dependencies
-apt-get install nodejs -y --no-install-recommends
+apt-get install nodejs yarn -y --no-install-recommends
 apt-get install libpq-dev -y --no-install-recommends # PostgreSQL gem requirement
+
+#Fix yarn nodejs binary path
+echo 'alias node=nodejs' >> "$HOME/.bashrc"
 
 # Install ruby if found a .ruby-version
 if [ -e .ruby-version ]; then
