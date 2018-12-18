@@ -49,16 +49,26 @@ apt-get install libpq-dev -y --no-install-recommends # PostgreSQL gem requiremen
 #Fix yarn nodejs binary path
 echo 'alias node=nodejs' >> "$HOME/.bashrc"
 
-# Install ruby if found a .ruby-version
+# Install ruby if found a .ruby-version or install the latest stable ruby
+RBENV_BIN="$HOME/.rbenv/bin/rbenv"
+GEM_BIN="$HOME/.rbenv/shims/gem"
+BUNDLE_BIN="$HOME/.rbenv/shims/bundle" 
+
 if [ -e .ruby-version ]; then
-  "$HOME/.rbenv/bin/rbenv" install "$(cat .ruby-version)"
-  "$HOME/.rbenv/bin/rbenv" global "$(cat .ruby-version)"
-  "$HOME/.rbenv/shims/gem" install bundle
+  RUBY_VERSION="$(cat .ruby-version)"
+else
+  RUBY_VERSION=$($RBENV_BIN install -l | grep -v - | tail -1)
 fi
 
-# Install thee GEMS if found a Gemfile
+$RBENV_BIN install $RUBY_VERSION
+$RBENV_BIN global $RUBY_VERSION
+$GEM_BIN install bundle
+
+# Install the GEMS if found a Gemfile else install the latest stable rails
 if [ -e Gemfile ]; then
-  "$HOME/.rbenv/shims/bundle" install --gemfile=Gemfile
+  $BUNDLE_BIN install --gemfile=Gemfile
+else
+  $GEM_BIN install rails
 fi
 
 # Cleanup if running in docker container
