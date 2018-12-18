@@ -55,8 +55,10 @@ GEM_BIN="$HOME/.rbenv/shims/gem"
 BUNDLE_BIN="$HOME/.rbenv/shims/bundle" 
 
 if [ -e .ruby-version ]; then
+  echo "Found .ruby-version file"
   RUBY_VERSION="$(cat .ruby-version)"
 else
+  echo "Not found .ruby-version file, installing the latest stable ruby version"
   RUBY_VERSION=$($RBENV_BIN install -l | grep -v - | tail -1)
 fi
 
@@ -66,8 +68,10 @@ $GEM_BIN install bundle
 
 # Install the GEMS if found a Gemfile else install the latest stable rails
 if [ -e Gemfile ]; then
+  echo "Found Gemfile"
   $BUNDLE_BIN install --gemfile=Gemfile
 else
+  echo "Not found Gemfile, installing the latest stable ruby on rails version"
   $GEM_BIN install rails
 fi
 
