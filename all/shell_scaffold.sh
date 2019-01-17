@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 # Author: Rafael Moraes <roliveira.moraes@gmail.com>
 # Script to help to create another scripts, like the Ruby on Rails scaffold
 
 # DEFAULT VARIABLES
 AUTHOR='Rafael Moraes <roliveira.moraes@gmail.com>'
-DESCRIPTION='Write here what this script do...'
-HELP_MESSAGE="Usage: shell_scaffold path_and_script_name [OPTIONS]
+DESCRIPTION='[CHANGE OR DELETE ME] Write here what this script do...'
+HELP_MESSAGE="[CHANGE OR DELETE ME] Usage: shell_scaffold path_and_script_name [OPTIONS]
 
 Parameters list
   -a, --author=         Sets author information (default: $AUTHOR)
@@ -55,9 +55,9 @@ exit_is_not_superuser() {
 
 DEFAULT_VARIABLES='
 # DEFAULT VARIABLES
-FOO="FOO"
-BAR="BAR"
-HELP_MESSAGE="Usage: runnable [OPTIONS]
+FOO="FOO" #[CHANGE OR DELETE ME]  
+BAR="BAR" #[CHANGE OR DELETE ME] 
+HELP_MESSAGE="[CHANGE OR DELETE ME] Usage: runnable [OPTIONS]
 
 Parameters list
   -f, --foo=    Says to script do something...
@@ -68,10 +68,10 @@ READ_OPTIONS='# Read user parameters
 apply_options() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
-
+            #[CHANGE OR DELETE ME] 
             -f) FOO="$2"; shift 2;;
             --foo=*) FOO="${1#*=}"; shift 1;;
-
+            #[CHANGE OR DELETE ME] 
             -b) BAR="$2"; shift 2;;
             --bar=*) BAR="${1#*=}"; shift 1;;
 
@@ -83,7 +83,7 @@ apply_options() {
 }'
 
 MAIN_CONTENT='
-# Write your functions here, like below.
+#[CHANGE OR DELETE ME] Write your functions here, like below.
 example() {
     echo "$FOO, $BAR"
 }
@@ -92,12 +92,12 @@ example() {
 main() {
     apply_options "$@"
     exit_is_not_superuser
-    i_echo "Script begin do something...."
+    i_echo "[CHANGE OR DELETE ME] Script begin do something...."
 
-    # Run your functions here, as below.
+    #[CHANGE OR DELETE ME] Run your functions here, as below.
     example
 
-    i_echo "Script finished..."
+    i_echo "[CHANGE OR DELETE ME] Script finished..."
 }
 
 main "$@"
