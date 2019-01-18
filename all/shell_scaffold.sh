@@ -40,23 +40,34 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-HEADER="#!/bin/sh/
+HEADER="#!/bin/bash
 # AUTHOR: $AUTHOR
-# DESCRIPTION: $DESCRIPTION"
+# DESCRIPTION: $DESCRIPTION
+"
 
-HELPERS='
-# HELPERS
+STRICT_MODE="# Configure bash unofficial strict mode
+# -e: Exits if any command return non zero state
+# -u: Exits if you reference a non declared variable
+# -o pipefail: Exits if any command on pipeline return non zero state
+set -euo pipefail
+#IFS=$'\n\t'  # Sets bash word splitting as break-line and/or tab
+"
+
+HELPERS='# HELPERS
 i_echo() { echo "[INFO] - $1"; }
 w_echo() { echo "[WARN] - $1"; }
 e_echo() { echo "[ERROR] - $1"; }
 exit_is_not_superuser() {
-    [ "$(id -u)" != "0" ] && w_echo "Run as root or using sudo." && exit 1
-}'
+    if [ "$(id -u)" != "0" ]; then
+        w_echo "Run as root or using sudo."
+        exit 1
+    fi
+}
+'
 
-DEFAULT_VARIABLES='
-# DEFAULT VARIABLES
-FOO="FOO" #[CHANGE OR DELETE ME]  
-BAR="BAR" #[CHANGE OR DELETE ME] 
+DEFAULT_VARIABLES='# DEFAULT VARIABLES
+FOO="FOO" #[CHANGE OR DELETE ME]
+BAR="BAR" #[CHANGE OR DELETE ME]
 HELP_MESSAGE="[CHANGE OR DELETE ME] Usage: runnable [OPTIONS]
 
 Parameters list
@@ -68,10 +79,10 @@ READ_OPTIONS='# Read user parameters
 apply_options() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
-            #[CHANGE OR DELETE ME] 
+            #[CHANGE OR DELETE ME]
             -f) FOO="$2"; shift 2;;
             --foo=*) FOO="${1#*=}"; shift 1;;
-            #[CHANGE OR DELETE ME] 
+            #[CHANGE OR DELETE ME]
             -b) BAR="$2"; shift 2;;
             --bar=*) BAR="${1#*=}"; shift 1;;
 
@@ -80,7 +91,8 @@ apply_options() {
             -*) echo "Unknown option: $1" >&2; exit 1;;
         esac
     done
-}'
+}
+'
 
 MAIN_CONTENT='
 #[CHANGE OR DELETE ME] Write your functions here, like below.
@@ -100,12 +112,12 @@ main() {
     i_echo "[CHANGE OR DELETE ME] Script finished..."
 }
 
-main "$@"
-'
+main "$@"'
 
 generate_script() {
     {
         echo "$HEADER"
+        echo "$STRICT_MODE"
         echo "$HELPERS"
         echo "$DEFAULT_VARIABLES"
         echo "$READ_OPTIONS"
