@@ -41,8 +41,16 @@ while [ "$#" -gt 0 ]; do
 done
 
 HEADER="#!/bin/bash
-# AUTHOR: $AUTHOR
-# DESCRIPTION: $DESCRIPTION
+##############################################################################
+# $SCRIPT
+# -----------
+# $DESCRIPTION
+#
+#
+# :AUTHORS: $AUTHOR
+# :DATE: $(date +%Y-%m-%d)
+# :VERSION: 0.0.1
+##############################################################################
 "
 
 STRICT_MODE="# Configure bash unofficial strict mode
@@ -53,19 +61,23 @@ set -euo pipefail
 #IFS=$'\n\t'  # Sets bash word splitting as break-line and/or tab
 "
 
-HELPERS='# HELPERS
-i_echo() { echo "[INFO] - $1"; }
+LOG_HELPERS='i_echo() { echo "[INFO] - $1"; }
 w_echo() { echo "[WARN] - $1"; }
 e_echo() { echo "[ERROR] - $1"; }
-exit_is_not_superuser() {
-    if [ "$(id -u)" != "0" ]; then
-        w_echo "Run as root or using sudo."
-        exit 1
-    fi
+'
+CHECK_HELPERS='exit_is_not_superuser() {
+    if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 '
-
-DEFAULT_VARIABLES='# DEFAULT VARIABLES
+BACKUP_HELPERS='backup_file() {
+    if [ $# -eq 0 ]; then e_echo "Backup failed, you need to give a file path."; exit 1; fi
+    if [ ! -e "$1" ]; then e_echo "Backup failed, file not found: $1"; exit 1; fi
+    suffix="-BACKUP-$(date +%Y-%m-%d--%H-%M-%S)"
+    if [ $# -eq 2 ]; then DEST="$2$suffix"; else DEST="$1$suffix"; fi
+    cp -r "$1" "$DEST"
+}
+'
+DEFAULT_VARIABLES='# VARIABLES
 FOO="FOO" #[CHANGE OR DELETE ME]
 BAR="BAR" #[CHANGE OR DELETE ME]
 HELP_MESSAGE="[CHANGE OR DELETE ME] Usage: runnable [OPTIONS]
@@ -118,7 +130,9 @@ generate_script() {
     {
         echo "$HEADER"
         echo "$STRICT_MODE"
-        echo "$HELPERS"
+        echo "$LOG_HELPERS"
+        echo "$CHECK_HELPERS"
+        echo "$BACKUP_HELPERS"
         echo "$DEFAULT_VARIABLES"
         echo "$READ_OPTIONS"
         echo "$MAIN_CONTENT"
