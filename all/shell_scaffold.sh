@@ -100,7 +100,7 @@ apply_options() {
 
             -h|--help) echo "$HELP_MESSAGE"; exit 0;;
 
-            -*) echo "Unknown option: $1" >&2; exit 1;;
+            *) echo "Unknown option: $1" >&2; exit 1;;
         esac
     done
 }
