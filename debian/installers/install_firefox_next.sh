@@ -25,6 +25,7 @@ backup_file() {
 
 # VARIABLES
 URL_FIREFOX_NEXT='deb http://ppa.launchpad.net/mozillateam/firefox-next/ubuntu trusty main'
+SOURCE_FILE='/etc/apt/sources.list.d/firefox-next.list'
 HELP_MESSAGE="Usage: ./install_firefox_next [OPTIONS]
 
 Parameters list
@@ -45,14 +46,18 @@ apply_options() {
     done
 }
 
+delete_old_source_file_if_exist() {
+    if [ -e "$SOURCE_FILE" ]; then rm -f "$SOURCE_FILE"; fi
+}
+
 add_repository() {
-    echo "$URL_FIREFOX_NEXT" | tee /etc/apt/sources.list.d/firefox-next.list
+    echo "$URL_FIREFOX_NEXT" | tee "$SOURCE_FILE"
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
-               --recv-keys 0AB215679C571D1C8325275B9BDB3D89CE49EC21
+                --recv-keys 0AB215679C571D1C8325275B9BDB3D89CE49EC21
 }
 
 install_requirements() {
-    apt update && apt install -y dirmngr
+    apt update && apt install -y dirmngr wget
 }
 
 install() {
@@ -64,6 +69,7 @@ main() {
     exit_is_not_superuser
 
     i_echo "Install Firefox Next"
+    delete_old_source_file_if_exist
     install_requirements
     add_repository
     install
