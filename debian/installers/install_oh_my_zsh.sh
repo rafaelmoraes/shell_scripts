@@ -68,8 +68,7 @@ install_requirements() {
     apt update
     apt install -y zsh \
                    git \
-                   curl \
-                   sudo
+                   curl
 }
 
 install_theme() {
