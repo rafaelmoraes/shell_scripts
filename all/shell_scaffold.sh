@@ -73,8 +73,8 @@ BACKUP_HELPERS='backup_file() {
     if [ $# -eq 0 ]; then e_echo "Backup failed, you need to give a file path."; exit 1; fi
     if [ ! -e "$1" ]; then e_echo "Backup failed, file not found: $1"; exit 1; fi
     suffix="-BACKUP-$(date +%Y-%m-%d--%H-%M-%S)"
-    if [ $# -eq 2 ]; then DEST="$2$suffix"; else DEST="$1$suffix"; fi
-    cp -r "$1" "$DEST"
+    if [ $# -eq 2 ]; then dest="$2$suffix"; else dest="$1$suffix"; fi
+    cp -r "$1" "$dest"
 }
 '
 DEFAULT_VARIABLES='# VARIABLES
