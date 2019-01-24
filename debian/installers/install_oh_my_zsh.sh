@@ -111,7 +111,7 @@ set_zsh_as_default_shell() {
 
 set_right_owner() {
     if [ "$USER_NAME" != "$USER" ]; then
-        chown -R "$USER_NAME:$USER_NAME" "$INSTALLATION_PATH/.oh-my-zsh"
+        chown -R "$USER_NAME:$USER_NAME" "$INSTALLATION_PATH"
     fi
 }
 
