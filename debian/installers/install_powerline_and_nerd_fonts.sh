@@ -6,8 +6,8 @@
 #
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
-# :DATE: 2019-01-22
-# :VERSION: 0.0.1
+# :DATE: 2019-01-24
+# :VERSION: 0.0.2
 ##############################################################################
 
 set -euo pipefail
@@ -26,12 +26,11 @@ backup_file() {
 }
 
 # VARIABLES
+USER_NAME=${SUDO_USER:-$USER}
 URL_POWERLINE_FONT='https://github.com/powerline/fonts.git'
 BASE_URL_NERD_FONT='https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts'
 URL_ROBOTO_MONO_NERD_FONT="$BASE_URL_NERD_FONT/RobotoMono/Regular/complete/Roboto%20Mono%20Nerd%20Font%20Complete%20Mono.ttf"
 URL_SPACE_MONO_NERD_FONT="$BASE_URL_NERD_FONT/SpaceMono/Regular/complete/Space%20Mono%20Nerd%20Font%20Complete%20Mono.ttf"
-
-USER_NAME="$USER"
 HELP_MESSAGE="Usage: .install_powerline_and_nerd_fonts [OPTIONS]
 
 Parameters list
@@ -52,16 +51,25 @@ apply_options() {
     done
 }
 
-install_requirements() {
-    apt update
-    apt install -y git \
-                   curl
+try_install_requirements_if_needed() {
+    if [[ ! -x `which git` || ! -x `which curl` ]]; then
+        if [ -x `which apt` ]; then
+            exit_is_not_superuser
+            apt update
+            apt install -y git \
+                           curl
+        else
+            e_echo 'You need to have git and curl installed.'
+            exit 1
+        fi
+    fi
 }
 
 install_powerline_fonts() {
     if [ -e fonts ]; then rm -rf fonts; fi
     git clone "$URL_POWERLINE_FONT" --depth=1
     cd fonts
+    sed -i "s|\$HOME|/home/$USER_NAME|g" install.sh
     ./install.sh
     cd .. && rm -rf fonts
 }
@@ -83,9 +91,8 @@ set_right_owner() {
 
 main() {
     apply_options "$@"
-    exit_is_not_superuser
     i_echo "Install Powerline and Nerd fonts"
-    install_requirements
+    try_install_requirements_if_needed
     install_powerline_fonts
     install_nerd_fonts
     set_right_owner
