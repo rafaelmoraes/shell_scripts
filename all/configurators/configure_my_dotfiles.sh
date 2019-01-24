@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 ##############################################################################
 # configure_my_dotfiles.sh
 # -----------
@@ -6,8 +6,8 @@
 #
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
-# :DATE: 2019-01-23
-# :VERSION: 0.0.1
+# :DATE: 2019-01-26
+# :VERSION: 0.0.2
 ##############################################################################
 
 set -euo pipefail
@@ -26,8 +26,8 @@ backup_file() {
 }
 # VARIABLES
 URL_GIT_REPOSITORY='https://github.com/rafaelmoraes/dotfiles.git'
-USER_NAME="$USER"
-USER_HOME="$HOME"
+USER_NAME=${SUDO_USER:-$USER}
+USER_HOME="/home/$USER_NAME"
 TMP_DIR='/tmp/dotfiles'
 HELP_MESSAGE="Usage: ./configure_my_dotfiles.sh [OPTIONS]
 
