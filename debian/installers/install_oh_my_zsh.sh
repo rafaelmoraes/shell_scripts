@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 ##############################################################################
 # install_oh_my_zsh.sh
 # -----------
@@ -6,8 +6,8 @@
 #
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
-# :DATE: 2019-01-21
-# :VERSION: 0.0.1
+# :DATE: 2019-01-24
+# :VERSION: 0.0.2
 ##############################################################################
 set -euo pipefail # Configure bash unofficial strict mode
 
@@ -28,10 +28,10 @@ backup_file() {
 }
 
 # VARIABLES
-DEFAULT_INSTALLATION_PATH="$HOME"
 INSTALLATION_PATH=""
-DEFAULT_USER_NAME="$USER"
 USER_NAME=""
+DEFAULT_USER_NAME=${SUDO_USER:-$USER}
+DEFAULT_INSTALLATION_PATH="/home/$DEFAULT_USER_NAME"
 HELP_MESSAGE="Usage: ./install_oh_my_zsh.sh [OPTIONS]
 
 Parameters list
@@ -62,13 +62,21 @@ set_values() {
         INSTALLATION_PATH=$DEFAULT_INSTALLATION_PATH
     fi
     if [ -z "$USER_NAME" ]; then USER_NAME="$DEFAULT_USER_NAME"; fi
+    # root is a special case
+    if [ "$USER_NAME" == 'root' ]; then INSTALLATION_PATH='/root'; fi
 }
 
-install_requirements() {
-    apt update
-    apt install -y zsh \
-                   git \
-                   curl
+try_install_requirements_if_needed() {
+    if [[ ! -x `which zsh` || ! -x `which git` || ! -x `which curl` ]]; then
+        if [ -x `which apt` ]; then
+            apt update
+            apt install -y zsh \
+                           git \
+                           curl
+        else
+            e_echo 'You need have installed zsh, git and curl.'
+        fi
+    fi
 }
 
 install_theme() {
@@ -98,7 +106,7 @@ install() {
 }
 
 set_zsh_as_default_shell() {
-    sed -i "s|:/bin/bash|:/bin/zsh|g" /etc/passwd
+    sed -i "s|$USER_NAME:/bin/bash|$USER_NAME:/bin/zsh|g" /etc/passwd
 }
 
 set_right_owner() {
@@ -112,7 +120,7 @@ main() {
     exit_is_not_superuser
     i_echo "Install Oh My Zsh"
     set_values
-    install_requirements
+    try_install_requirements_if_needed
     install
     install_theme
     set_right_owner
