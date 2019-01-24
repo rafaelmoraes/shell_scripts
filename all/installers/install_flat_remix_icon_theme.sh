@@ -27,7 +27,7 @@ backup_file() {
 
 # VARIABLES
 URL_ICON_THEME='https://github.com/daniruiz/flat-remix'
-USER_NAME="$USER"
+USER_NAME=${SUDO_USER:-$USER}
 HELP_MESSAGE="Usage: ./install_flat_remix_icon_theme.sh [OPTIONS]
 
 Parameters list
