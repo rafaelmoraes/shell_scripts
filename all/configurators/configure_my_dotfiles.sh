@@ -27,8 +27,7 @@ backup_file() {
 # VARIABLES
 URL_GIT_REPOSITORY='https://github.com/rafaelmoraes/dotfiles.git'
 USER_NAME=${SUDO_USER:-$USER}
-USER_HOME="/home/$USER_NAME"
-TMP_DIR='/tmp/dotfiles'
+TMP_DIR="/tmp/dotfiles-$(date +%s)"
 HELP_MESSAGE="Usage: ./configure_my_dotfiles.sh [OPTIONS]
 
 Parameters list
@@ -41,17 +40,23 @@ apply_options() {
         case "$1" in
             -u)
                 USER_NAME="$2"
-                USER_HOME="/home/$USER_NAME"
                 shift 2;;
             --user=*)
                 USER_NAME="${1#*=}"
-                USER_HOME="/home/$USER_NAME"
                 shift 1;;
             -h|--help) echo "$HELP_MESSAGE"; exit 0;;
 
             *) echo "Unknown option: $1" >&2; exit 1;;
         esac
     done
+}
+
+set_user_home() {
+    if [ "$USER_NAME" == 'root' ]; then
+        USER_HOME='/root';
+    else
+        USER_HOME="/home/$USER_NAME"
+    fi
 }
 
 try_install_git_if_needed() {
@@ -67,10 +72,7 @@ try_install_git_if_needed() {
 }
 
 clone_repository() {
-    if [ -e "$TMP_DIR" ]; then
-        TMP_DIR="$TMP_DIR-$(date +%s)";
-    fi
-    git clone "$URL_GIT_REPOSITORY" "$TMP_DIR"
+   git clone "$URL_GIT_REPOSITORY" "$TMP_DIR"
 }
 
 extract_directory_path() {
@@ -121,13 +123,13 @@ set_right_owner() {
     if [ "$USER_NAME" != "$USER" ]; then
         exit_is_not_superuser
         chown -R "$USER_NAME:$USER_NAME" "$USER_HOME"
-        # chown -R "$USER_NAME:$USER_NAME" "$USER_HOME/.git"
     fi
 }
 
 main() {
     apply_options "$@"
     i_echo "Install and configure my dotfiles"
+    set_user_home
     try_install_git_if_needed
     clone_repository
     install_dotfiles
