@@ -43,6 +43,7 @@ EndSection' > /etc/X11/xorg.conf.d/20-intel-graphics.conf
 
 exit_is_not_superuser
 i_echo 'Fixing Intel video tearing.'
+check_if_exist_an_intel_gpu
 create_directory_if_needed
 create_configuration_file
 i_echo 'Intel Video tearing fixed successfully.'
