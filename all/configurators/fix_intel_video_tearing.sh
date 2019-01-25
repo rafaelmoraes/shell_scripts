@@ -20,6 +20,13 @@ exit_is_not_superuser() {
     fi
 }
 
+check_if_exist_an_intel_gpu() {
+    if ! lspci | grep -q 'Intel Corporation HD Graphics'; then
+        i_echo 'Intel GPU not found'
+        exit 0
+    fi
+}
+
 create_directory_if_needed() {
     mkdir -p /etc/X11/xorg.conf.d || true
 }
