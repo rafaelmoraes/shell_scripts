@@ -2,7 +2,7 @@
 ##############################################################################
 # install_flat_remix_icon_theme.sh
 # -----------
-# [CHANGE OR DELETE ME] Write here what this script do...
+# Script to install and configure Flat Remix GTK theme
 #
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
@@ -48,6 +48,14 @@ apply_options() {
     done
 }
 
+set_user_home() {
+    if [ "$USER_NAME" == 'root' ]; then
+        USER_HOME='/root'
+    else
+        USER_HOME="/home/$USER_NAME"
+    fi
+}
+
 install_requirements() {
     if [ -z "$(which git)" ]; then
         if [ ! -z "$(which apt)" ]; then
@@ -64,8 +72,8 @@ install_requirements() {
 install_icon_theme() {
     rm -rf /tmp/flat-remix || true
     git clone $URL_ICON_THEME /tmp/flat-remix
-    mkdir -p "/home/$USER_NAME/.icons" || true
-    cp -r /tmp/flat-remix/Flat-Remix* "/home/$USER_NAME/.icons"
+    mkdir -p "$USER_HOME/.icons" || true
+    cp -r /tmp/flat-remix/Flat-Remix* "$USER_HOME/.icons"
     if [ -x gsettings ]; then
         gsettings set org.gnome.desktop.interface icon-theme "Flat-Remix"
     fi
@@ -74,7 +82,7 @@ install_icon_theme() {
 
 set_right_owner() {
     if [ "$USER_NAME" != "$USER" ]; then
-        chown -R "$USER_NAME:$USER_NAME" "/home/$USER_NAME/.icons"
+        chown -R "$USER_NAME:$USER_NAME" "$USER_HOME"
     fi
 }
 
@@ -82,6 +90,7 @@ main() {
     apply_options "$@"
 
     i_echo 'Install Flat Remix icon theme'
+    set_user_home
     install_requirements
     install_icon_theme
     set_right_owner
