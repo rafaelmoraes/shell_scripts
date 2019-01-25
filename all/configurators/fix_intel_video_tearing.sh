@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # AUTHOR: Rafael Moraes <roliveira.moraes@gmail.com>
 # DESCRIPTION: Script to fix video tearing on Intel Graphics cards
 
@@ -21,7 +21,7 @@ exit_is_not_superuser() {
 }
 
 check_if_exist_an_intel_gpu() {
-    if ! lspci | grep -q 'Intel Corporation HD Graphics'; then
+    if lspci | grep -q 'Intel Corporation HD Graphics'; then
         i_echo 'Intel GPU not found'
         exit 0
     fi
