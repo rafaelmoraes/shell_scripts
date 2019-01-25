@@ -7,7 +7,6 @@
 # -u: Exits if you reference a non declared variable
 # -o pipefail: Exits if any command on pipeline return non zero state
 set -euo pipefail
-#IFS=$'\n\t'  # Sets bash word splitting as break-line and/or tab
 
 # HELPERS
 i_echo() { echo "[INFO] - $1"; }
@@ -20,8 +19,9 @@ exit_is_not_superuser() {
     fi
 }
 
-check_if_exist_an_intel_gpu() {
-    if lspci | grep -q 'Intel Corporation HD Graphics'; then
+check_if_intel_gpu_exist() {
+    gpu_found="$(lspci | grep 'Intel Corporation HD Graphics')"
+    if [ -z "$gpu_found" ]; then
         i_echo 'Intel GPU not found'
         exit 0
     fi
@@ -43,7 +43,7 @@ EndSection' > /etc/X11/xorg.conf.d/20-intel-graphics.conf
 
 exit_is_not_superuser
 i_echo 'Fixing Intel video tearing.'
-check_if_exist_an_intel_gpu
+check_if_intel_gpu_exist
 create_directory_if_needed
 create_configuration_file
 i_echo 'Intel Video tearing fixed successfully.'
