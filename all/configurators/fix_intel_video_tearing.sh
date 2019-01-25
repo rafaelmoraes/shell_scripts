@@ -34,13 +34,11 @@ EndSection' > /etc/X11/xorg.conf.d/20-intel-graphics.conf
 }
 
 exit_is_not_superuser
-gpu_found="$(lspci | grep 'Intel Corporation HD Graphics')"
-if [ -z "$gpu_found" ]; then
-    i_echo 'Intel GPU not found'
-else
+if lspci | grep -q 'Intel Corporation HD Graphics'; then
     i_echo 'Fixing Intel video tearing.'
     create_directory_if_needed
     create_configuration_file
     i_echo 'Intel Video tearing fixed successfully.'
+else
+    i_echo 'Intel GPU not found'
 fi
-
