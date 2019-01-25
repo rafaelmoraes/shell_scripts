@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 # AUTHOR: Rafael Moraes <roliveira.moraes@gmail.com>
 # DESCRIPTION: Script to fix video tearing on Intel Graphics cards
 
@@ -19,14 +19,6 @@ exit_is_not_superuser() {
     fi
 }
 
-check_if_intel_gpu_exist() {
-    gpu_found="$(lspci | grep 'Intel Corporation HD Graphics')"
-    if [ -z "$gpu_found" ]; then
-        i_echo 'Intel GPU not found'
-        exit 0
-    fi
-}
-
 create_directory_if_needed() {
     mkdir -p /etc/X11/xorg.conf.d || true
 }
@@ -42,8 +34,13 @@ EndSection' > /etc/X11/xorg.conf.d/20-intel-graphics.conf
 }
 
 exit_is_not_superuser
-i_echo 'Fixing Intel video tearing.'
-check_if_intel_gpu_exist
-create_directory_if_needed
-create_configuration_file
-i_echo 'Intel Video tearing fixed successfully.'
+gpu_found="$(lspci | grep 'Intel Corporation HD Graphics')"
+if [ -z "$gpu_found" ]; then
+    i_echo 'Intel GPU not found'
+else
+    i_echo 'Fixing Intel video tearing.'
+    create_directory_if_needed
+    create_configuration_file
+    i_echo 'Intel Video tearing fixed successfully.'
+fi
+
