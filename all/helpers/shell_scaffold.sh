@@ -36,13 +36,16 @@ while [ "$#" -gt 0 ]; do
 
         -*) echo "Unknown option: $1" >&2; exit 1;;
 
-        *) SCRIPT=$1; shift 1;;
+        *) SCRIPT_PATH=$1
+           SCRIPT_NAME=$(echo "$SCRIPT_PATH" | awk -F'/' '{ print $NF }' )
+           DIRS_PATH=${SCRIPT_PATH%$SCRIPT_NAME}
+           shift 1;;
     esac
 done
 
 HEADER="#!/bin/bash
 ##############################################################################
-# $SCRIPT
+# $SCRIPT_NAME
 # -----------
 # $DESCRIPTION
 #
@@ -126,6 +129,12 @@ main() {
 
 main "$@"'
 
+create_directories_if_needed() {
+    if [ ! -z "$DIRS_PATH" ] && [ ! -e "$DIRS_PATH" ] ; then
+        mkdir -p "$DIRS_PATH"
+    fi
+}
+
 generate_script() {
     {
         echo "$HEADER"
@@ -136,12 +145,13 @@ generate_script() {
         echo "$DEFAULT_VARIABLES"
         echo "$READ_OPTIONS"
         echo "$MAIN_CONTENT"
-    } > "$SCRIPT"
+    } > "$SCRIPT_PATH"
 
-    sudo chmod +x "$SCRIPT"
+    sudo chmod +x "$SCRIPT_PATH"
 }
 
 main() {
+    create_directories_if_needed
     generate_script
 }
 
