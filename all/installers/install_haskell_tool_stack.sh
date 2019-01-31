@@ -2,7 +2,7 @@
 ##############################################################################
 # install_haskell_tool_stack.sh
 # -----------
-# Script to install the Haskell Tool Stack on Alpine Linux,
+# Script to install the Haskell Tool Stack
 # basically I just use it to install hadolint and shellcheck
 #
 #
@@ -21,12 +21,16 @@ exit_is_not_superuser() {
     if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 
-install_requirements() {
-    apk update
-    apk upgrade
-    apk add --no-cache \
-        ghc \
-        curl
+try_install_requirements_if_needed() {
+    if [ -x "$(which ghc)" ] || [ -x "$(which curl)" ]; then
+        if [ -x "$(which apt)" ]; then
+            apt update && apt install -y ghc curl
+        elif [ -x "$(which apk)" ]; then
+            apk update $$ apk add --no-cache ghc curl
+        else
+            e_echo 'You need have installed: curl, ghc'
+        fi
+    fi
 }
 
 install_stack() {
@@ -34,14 +38,21 @@ install_stack() {
 }
 
 add_in_path_env_var() {
-    echo 'export PATH=$PATH:$HOME/.local/bin' >> "$HOME/.bashrc"
+    if [ -f "$HOME/.bashrc" ]; then
+        rc_file="$HOME/.bashrc"
+    elif [ -f "$HOME/.zshrc" ]; then
+        rc_file="$HOME/.zshrc"
+    else
+        rc_file="$HOME/.bashrc"
+    fi
+    echo 'export PATH=$PATH:$HOME/.local/bin' >> "$rc_file"
 }
 
 main() {
     exit_is_not_superuser
     i_echo 'Install Haskell Tool Stack'
 
-    install_requirements
+    try_install_requirements_if_needed
     install_stack
     add_in_path_env_var
 
