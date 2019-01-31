@@ -16,6 +16,28 @@ i_echo() { echo "[INFO] - $1"; }
 w_echo() { echo "[WARN] - $1"; }
 e_echo() { echo "[ERROR] - $1"; }
 
+NO_INSTALL_GEM_DOCS=false
+RBENV_BIN="$HOME/.rbenv/bin/rbenv"
+GEM_BIN="$HOME/.rbenv/shims/gem"
+BUNDLE_BIN="$HOME/.rbenv/shims/bundle"
+USAGE="Usage: ./install_ruby_on_rails.sh [OPTIONS]
+
+Options Available
+    --no-gem-doc      Don't install the GEMs documentations (default: $NO_INSTALL_GEM_DOCS)
+
+    -h, --help        Show usage
+"
+
+set_up_options() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --no-gem-doc) NO_INSTALL_GEM_DOCS=true; shift 1;;
+            -h|--help) echo "$USAGE"; exit 0;;
+            *) echo "Unknown option: $1" >&2; exit 1;;
+        esac
+    done
+}
+
 install_requirements() {
     i_echo 'Install requirements'
     apk update
@@ -68,9 +90,6 @@ install_rbenv_and_ruby_build() {
 
 install_ruby() {
     i_echo 'Install Ruby'
-    RBENV_BIN="$HOME/.rbenv/bin/rbenv"
-    GEM_BIN="$HOME/.rbenv/shims/gem"
-    BUNDLE_BIN="$HOME/.rbenv/shims/bundle"
 
     if [ -e .ruby-version ]; then
       i_echo "Found .ruby-version file"
@@ -105,13 +124,25 @@ install_gems() {
 }
 
 clean_up() {
-    ls /var/cache/apk
     rm -rf /var/cache/apk/*
 }
 
+set_up_gem_documentaion() {
+    if [ $NO_INSTALL_GEM_DOCS ]; then
+        GEMRC='
+install: --no-document
+update: --no-document'
+        export GEMRC
+        echo "$GEMRC" > $HOME/.gemrc
+    fi
+}
+
 main() {
+    set_up_options "$@"
+
     i_echo 'Install Ruby on Rails'
 
+    set_up_gem_documentaion
     install_requirements
     install_rbenv_and_ruby_build
     install_ruby
@@ -122,4 +153,4 @@ main() {
     i_echo "Ruby on Rails installed successfully"
 }
 
-main
+main "$@"
