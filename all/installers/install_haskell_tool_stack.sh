@@ -22,13 +22,14 @@ exit_is_not_superuser() {
 }
 
 try_install_requirements_if_needed() {
-    if [ -x "$(which ghc)" ] || [ -x "$(which curl)" ]; then
+    if [ ! -x "$(which ghc)" ] || [ ! -x "$(which curl)" ]; then
         if [ -x "$(which apt)" ]; then
             apt update && apt install -y ghc curl
         elif [ -x "$(which apk)" ]; then
-            apk update $$ apk add --no-cache ghc curl
+            apk update && apk add --no-cache ghc curl
         else
             e_echo 'You need have installed: curl, ghc'
+            exit 1
         fi
     fi
 }
