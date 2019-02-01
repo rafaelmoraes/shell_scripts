@@ -30,7 +30,7 @@ alpine_install_shellcheck() {
                 build-base
 
         cabal update
-        cabal install ShellCheck --bindir=/usr/local/bin/
+        cabal install ShellCheck --global
         exit 0
     fi
 }
