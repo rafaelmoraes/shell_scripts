@@ -20,6 +20,21 @@ exit_is_not_superuser() {
     if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 
+alpine_configure_path_env_var() {
+    if ! echo "$PATH" | grep -q "$HOME/.cabal/bin"; then
+        if [ -f "$HOME/.bashrc" ]; then
+            rc_file="$HOME/.bashrc"
+        elif [ -f "$HOME/.zshrc" ]; then
+            rc_file="$HOME/.zshrc"
+        else
+            rc_file="$HOME/.bashrc"
+        fi
+        new_path='export PATH=$PATH:$HOME/.cabal/bin'
+        echo "$new_path" >> "$rc_file"
+        source "$rc_file"
+    fi
+}
+
 alpine_install_shellcheck() {
     if [ -x "$(which apk)" ]; then
         apk update
@@ -30,7 +45,8 @@ alpine_install_shellcheck() {
                 build-base
 
         cabal update
-        cabal install ShellCheck --global
+        cabal install ShellCheck
+        alpine_configure_path_env_var
         exit 0
     fi
 }
