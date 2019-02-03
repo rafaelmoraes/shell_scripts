@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 ##############################################################################
 # install_shellcheck.sh
 # -----------
@@ -20,21 +20,6 @@ exit_is_not_superuser() {
     if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 
-alpine_configure_path_env_var() {
-    if ! echo "$PATH" | grep -q "$HOME/.cabal/bin"; then
-        if [ -f "$HOME/.bashrc" ]; then
-            rc_file="$HOME/.bashrc"
-        elif [ -f "$HOME/.zshrc" ]; then
-            rc_file="$HOME/.zshrc"
-        else
-            rc_file="$HOME/.bashrc"
-        fi
-        new_path='export PATH=$PATH:$HOME/.cabal/bin'
-        echo "$new_path" >> "$rc_file"
-        source "$rc_file"
-    fi
-}
-
 alpine_install_shellcheck() {
     if [ -x "$(which apk)" ]; then
         apk update
@@ -44,9 +29,10 @@ alpine_install_shellcheck() {
                 ghc \
                 build-base
 
+        mkdir -p "$HOME/.cabal/bin"
         cabal update
         cabal install ShellCheck
-        alpine_configure_path_env_var
+        ln -s "$HOME/.cabal/bin/shellcheck" /usr/local/bin/shellcheck
         exit 0
     fi
 }
