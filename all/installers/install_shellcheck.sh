@@ -29,11 +29,14 @@ alpine_install_shellcheck() {
                 ghc \
                 build-base
 
-        mkdir -p "$HOME/.cabal/bin"
         cabal update
-        cabal install ShellCheck
-        ln -s "$HOME/.cabal/bin/shellcheck" /usr/local/bin/shellcheck
-        exit 0
+        cabal install ShellCheck || true
+        ln -fs "$HOME/.cabal/bin/shellcheck" /usr/local/bin/shellcheck
+        if [ -x "$(which shellcheck)" ]; then
+            exit 0
+        else
+            exit 1
+        fi
     fi
 }
 

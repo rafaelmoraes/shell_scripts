@@ -48,7 +48,6 @@ install_requirements() {
 		ca-certificates \
 		coreutils \
 		dpkg-dev \
-		gcc \
 		gdbm-dev \
 		glib-dev \
 		libc-dev \
