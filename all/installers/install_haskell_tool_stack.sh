@@ -39,14 +39,16 @@ install_stack() {
 }
 
 add_in_path_env_var() {
-    if [ -f "$HOME/.bashrc" ]; then
-        rc_file="$HOME/.bashrc"
-    elif [ -f "$HOME/.zshrc" ]; then
-        rc_file="$HOME/.zshrc"
-    else
-        rc_file="$HOME/.bashrc"
+    if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+        if [ -f "$HOME/.bashrc" ]; then
+            rc_file="$HOME/.bashrc"
+        elif [ -f "$HOME/.zshrc" ]; then
+            rc_file="$HOME/.zshrc"
+        else
+            rc_file="$HOME/.bashrc"
+        fi
+        echo 'export PATH=$PATH:$HOME/.local/bin' >> "$rc_file"
     fi
-    echo 'export PATH=$PATH:$HOME/.local/bin' >> "$rc_file"
 }
 
 main() {
