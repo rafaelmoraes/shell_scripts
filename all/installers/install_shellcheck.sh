@@ -43,7 +43,7 @@ alpine_install_shellcheck() {
 deb_install_shellcheck() {
     if [ -x "$(which apt)" ]; then
         apt update
-        apt install -y shellcheck
+        apt install -y --no-install-recommends shellcheck
         exit 0
     fi
 }
