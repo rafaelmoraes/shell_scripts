@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-01-31
-# :VERSION: 0.0.1
+# :VERSION: 0.0.2
 ##############################################################################
 
 set -euo pipefail
