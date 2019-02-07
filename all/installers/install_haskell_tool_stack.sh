@@ -35,11 +35,13 @@ try_install_requirements_if_needed() {
 }
 
 install_stack() {
+    set -e
     for i in {1..3}; do
         i_echo "Installation attempt: $i"
-        curl -sSL https://get.haskellstack.org/ | sh
+        curl -sSL https://get.haskellstack.org/ | bash
         if [ $? == 0 ]; then break; fi
     done
+    set +e
 }
 
 add_in_path_env_var() {
