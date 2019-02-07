@@ -20,19 +20,6 @@ exit_is_not_superuser() {
     if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 
-shellcheck_is_installed() {
-    if [ -x "$(which shellcheck)" ]; then
-        shellcheck --version &>/dev/null
-        if [ "$?" == "0" ]; then
-            echo true
-        else
-            echo false
-        fi
-    else
-        echo false
-    fi
-}
-
 alpine_install_shellcheck() {
     apk update
     apk add --no-cache \
@@ -46,12 +33,7 @@ alpine_install_shellcheck() {
 }
 
 alpine_clear_up(){
-    apk del cabal \
-            ghc \
-            build-base
-
-    # rm -rf "$HOME/.cabal"
-    # rm -rf "$HOME/.ghc"
+    apk del build-base
 }
 
 do_alpine() {
@@ -79,7 +61,7 @@ choose_and_execute_installation() {
 }
 
 check_installation_result(){
-    if shellcheck_is_installed; then
+    if shellcheck --version &>/dev/null; then
         i_echo 'ShellCheck installed successfully'
         exit 0
     else
@@ -90,9 +72,8 @@ check_installation_result(){
 
 main() {
     exit_is_not_superuser
-    i_echo "Install ShellCheck"
-
-    if shellcheck_is_installed; then
+    if ! shellcheck --version &>/dev/null; then
+        i_echo "Install ShellCheck"
         choose_and_execute_installation
         check_installation_result
     else
@@ -100,4 +81,4 @@ main() {
     fi
 }
 
-main "$@"
+main
