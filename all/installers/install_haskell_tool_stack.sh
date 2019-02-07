@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-01-31
-# :VERSION: 0.0.2
+# :VERSION: 0.0.5
 ##############################################################################
 
 set -euo pipefail
@@ -24,7 +24,7 @@ exit_is_not_superuser() {
 try_install_requirements_if_needed() {
     if [ ! -x "$(which ghc)" ] || [ ! -x "$(which curl)" ]; then
         if [ -x "$(which apt)" ]; then
-            apt update && apt install -y ghc curl
+            apt update && apt install -y --no-install-recommends ghc curl
         elif [ -x "$(which apk)" ]; then
             apk update && apk add --no-cache ghc curl
         else
@@ -35,7 +35,11 @@ try_install_requirements_if_needed() {
 }
 
 install_stack() {
-    curl -sSL https://get.haskellstack.org/ | sh
+    for i in {1..3}; do
+        i_echo "Installation attempt: $i"
+        curl -sSL https://get.haskellstack.org/ | sh
+        if [ $? == 0 ]; then break; fi
+    done
 }
 
 add_in_path_env_var() {
@@ -53,13 +57,21 @@ add_in_path_env_var() {
 
 main() {
     exit_is_not_superuser
-    i_echo 'Install Haskell Tool Stack'
+    if ! stack --version &>/dev/null; then
+        i_echo 'Install Haskell Tool Stack'
 
-    try_install_requirements_if_needed
-    install_stack
-    add_in_path_env_var
+        try_install_requirements_if_needed
+        install_stack
+        add_in_path_env_var
 
-    i_echo 'Haskell Tool Stack installed successfully'
+        if stack --version &>/dev/null; then
+            i_echo 'Haskell Tool Stack installed successfully'
+        else
+            e_echo 'Haskell Tool Stack installation failed. =/'
+        fi
+    else
+        w_echo 'Haskell Tool Stack already installed.'
+    fi
 }
 
-main "$@"
+main
