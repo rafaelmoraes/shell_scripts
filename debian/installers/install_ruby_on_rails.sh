@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-02-11
-# :VERSION: 0.0.1
+# :VERSION: 0.0.6
 ##############################################################################
 
 set -euo pipefail
@@ -21,35 +21,41 @@ exit_is_not_superuser() {
     if [ "$(id -u)" != "0" ]; then w_echo "Run as root or using sudo."; exit 1; fi
 }
 
-backup_file() {
-    if [ $# -eq 0 ]; then e_echo "Backup failed, you need to give a file path."; exit 1; fi
-    if [ ! -e "$1" ]; then e_echo "Backup failed, file not found: $1"; exit 1; fi
-    suffix="-BACKUP-$(date +%Y-%m-%d--%H-%M-%S)"
-    if [ $# -eq 2 ]; then dest="$2$suffix"; else dest="$1$suffix"; fi
-    cp -r "$1" "$dest"
-}
-
 # VARIABLES
 URL_RBENV='https://github.com/rbenv/rbenv.git'
 URL_RUBY_BUILD='https://github.com/sstephenson/ruby-build.git'
 
-RBENV_BIN="$HOME/.rbenv/bin/rbenv"
-GEM_BIN="$HOME/.rbenv/shims/gem"
-BUNDLE_BIN="$HOME/.rbenv/shims/bundle"
-
 DATABASE="postgresql"
+TARGET_USER="$(whoami)"
+TARGET_HOME="$HOME"
 HELP_MESSAGE="Usage: ./install_ruby_on_rails.sh [OPTIONS]
 
 Parameters list
     -db, --database=    Set the database supported (default: $DATABASE)
+    -u, --user=         Set the user target of the installation (default: $HOME)
     -h, --help          Show usage"
 
 apply_options() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
-            -db) DATABASE="$2"; shift 2;;
-            --database=*) DATABASE="${1#*=}"; shift 1;;
-
+            -db)
+                DATABASE="$2"
+                shift 2
+            ;;
+            --database=*)
+                DATABASE="${1#*=}"
+                shift 1
+            ;;
+            -u)
+                TARGET_USER="$2"
+                TARGET_HOME="/home/$TARGET_USER"
+                shift 2
+            ;;
+            --user=*)
+                TARGET_USER="${1#*=}"
+                TARGET_HOME="/home/$TARGET_USER"
+                shift 1
+             ;;
             -h|--help) echo "$HELP_MESSAGE"; exit 0;;
 
             *) echo "Unknown option: $1" >&2; exit 1;;
@@ -90,18 +96,19 @@ install_ruby_requeriments() {
 }
 
 install_rbenv_and_plugins() {
-    if [ -e "$HOME/.rbenv" ]; then rm -rf "$HOME/.rbenv"; fi
-    git clone "$URL_RBENV" "$HOME/.rbenv"
-    git clone "$URL_RUBY_BUILD" "$HOME/.rbenv/plugins/ruby-build"
-    if ! grep -q 'rbenv/bin' "$HOME/.bashrc"; then
-        echo "export PATH=\"$HOME/.rbenv/bin:$PATH\"" >> "$HOME/.bashrc"
+    if [ -e "$TARGET_HOME/.rbenv" ]; then rm -rf "$TARGET_HOME/.rbenv"; fi
+    git clone "$URL_RBENV" "$TARGET_HOME/.rbenv"
+    git clone "$URL_RUBY_BUILD" "$TARGET_HOME/.rbenv/plugins/ruby-build"
+    if ! grep -q 'rbenv/bin' "$TARGET_HOME/.bashrc"; then
+        echo 'export PATH=$HOME/.rbenv/bin:$PATH' >> "$TARGET_HOME/.bashrc"
     fi
-    if ! grep -q '(rbenv init -)' "$HOME/.bashrc"; then
-        echo "eval \"\$(rbenv init -)\"" >> "$HOME/.bashrc"
+    if ! grep -q '(rbenv init -)' "$TARGET_HOME/.bashrc"; then
+        echo "eval \"\$(rbenv init -)\"" >> "$TARGET_HOME/.bashrc"
     fi
-    if ! grep -q 'node=nodejs' "$HOME/.bashrc"; then
+    if ! grep -q 'node=nodejs' "$TARGET_HOME/.bashrc"; then
         echo 'alias node=nodejs' >> "$HOME/.bashrc"
     fi
+    chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME"
 }
 
 install_nodejs_and_yarn() {
@@ -130,30 +137,38 @@ install_database_support() {
     fi
 }
 
+_run_as_target_user() {
+    runuser -l "$TARGET_USER" -c "$@"
+}
+
 install_ruby_and_gems() {
+    RBENV_BIN="$TARGET_HOME/.rbenv/bin/rbenv"
+    GEM_BIN="$TARGET_HOME/.rbenv/shims/gem"
+    BUNDLE_BIN="$TARGET_HOME/.rbenv/shims/bundle"
+
     if [ -e .ruby-version ]; then
         i_echo "Found .ruby-version"
         RUBY_VERSION="$(cat .ruby-version)"
     else
         w_echo "Not found .ruby-version"
         i_echo "Installing the latest stable ruby version"
-        RUBY_VERSION=$($RBENV_BIN install -l | \
-                        grep -v - | \
-                        awk '{ print $NF }' | \
-                        tail -1)
+        RUBY_VERSION=$(_run_as_target_user "$RBENV_BIN install -l" |\
+                       grep -v - |\
+                       awk '{ print $NF }' |\
+                       tail -1)
     fi
 
-    $RBENV_BIN install "$RUBY_VERSION"
-    $RBENV_BIN global "$RUBY_VERSION"
-    $GEM_BIN install bundle
+    _run_as_target_user "$RBENV_BIN install $RUBY_VERSION"
+    _run_as_target_user "$RBENV_BIN global $RUBY_VERSION"
+    _run_as_target_user "$GEM_BIN install bundle"
 
     if [ -e Gemfile ]; then
         i_echo "Found Gemfile"
-        $BUNDLE_BIN install --gemfile=Gemfile
+        _run_as_target_user "$BUNDLE_BIN install --gemfile=Gemfile"
     else
         w_echo "Not found Gemfile"
         i_echo "Installing the latest stable ruby on rails version"
-        $GEM_BIN install rails
+        _run_as_target_user "$GEM_BIN install rails"
     fi
 }
 
@@ -162,11 +177,11 @@ main() {
     exit_is_not_superuser
     i_echo "Install Ruby on Rails"
 
-    set_up_base
-    install_ruby_requeriments
-    install_rbenv_and_plugins
-    install_nodejs_and_yarn
-    install_database_support
+    # set_up_base
+    # install_ruby_requeriments
+    # install_rbenv_and_plugins
+    # install_nodejs_and_yarn
+    # install_database_support
     install_ruby_and_gems
 
     i_echo "Ruby on Rails installed successfully"
