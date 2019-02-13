@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-02-11
-# :VERSION: 0.0.6
+# :VERSION: 0.0.7
 ##############################################################################
 
 set -euo pipefail
@@ -177,11 +177,11 @@ main() {
     exit_is_not_superuser
     i_echo "Install Ruby on Rails"
 
-    # set_up_base
-    # install_ruby_requeriments
-    # install_rbenv_and_plugins
-    # install_nodejs_and_yarn
-    # install_database_support
+    set_up_base
+    install_ruby_requeriments
+    install_rbenv_and_plugins
+    install_nodejs_and_yarn
+    install_database_support
     install_ruby_and_gems
 
     i_echo "Ruby on Rails installed successfully"
