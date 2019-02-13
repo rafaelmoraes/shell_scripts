@@ -164,7 +164,8 @@ install_ruby_and_gems() {
 
     if [ -e Gemfile ]; then
         i_echo "Found Gemfile"
-        _run_as_target_user "$BUNDLE_BIN install --gemfile=Gemfile"
+        ls
+        _run_as_target_user "$BUNDLE_BIN install --gemfile=$(pwd)/Gemfile"
     else
         w_echo "Not found Gemfile"
         i_echo "Installing the latest stable ruby on rails version"
