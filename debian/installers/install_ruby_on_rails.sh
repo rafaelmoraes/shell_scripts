@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-02-11
-# :VERSION: 0.0.7
+# :VERSION: 0.0.8
 ##############################################################################
 
 set -euo pipefail
@@ -169,6 +169,7 @@ install_ruby_and_gems() {
         w_echo "Not found Gemfile"
         i_echo "Installing the latest stable ruby on rails version"
         _run_as_target_user "$GEM_BIN install rails"
+        _run_as_target_user "$GEM_BIN install bundle"
     fi
 }
 
