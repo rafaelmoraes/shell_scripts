@@ -8,7 +8,7 @@
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
 # :DATE: 2019-02-11
-# :VERSION: 0.0.8
+# :VERSION: 0.0.9
 ##############################################################################
 
 set -euo pipefail
@@ -25,6 +25,7 @@ exit_is_not_superuser() {
 URL_RBENV='https://github.com/rbenv/rbenv.git'
 URL_RUBY_BUILD='https://github.com/sstephenson/ruby-build.git'
 
+FORCE=false
 DATABASE="postgresql"
 TARGET_USER="$(whoami)"
 TARGET_HOME="$HOME"
@@ -33,6 +34,7 @@ HELP_MESSAGE="Usage: ./install_ruby_on_rails.sh [OPTIONS]
 Parameters list
     -db, --database=    Set the database supported (default: $DATABASE)
     -u, --user=         Set the user target of the installation (default: $HOME)
+    -f, --force         Force reinstallation of rbenv and ruby (default: $FORCE)
     -h, --help          Show usage"
 
 apply_options() {
@@ -55,7 +57,11 @@ apply_options() {
                 TARGET_USER="${1#*=}"
                 TARGET_HOME="/home/$TARGET_USER"
                 shift 1
-             ;;
+            ;;
+            -f|--force)
+                FORCE=true
+                shift 1
+            ;;
             -h|--help) echo "$HELP_MESSAGE"; exit 0;;
 
             *) echo "Unknown option: $1" >&2; exit 1;;
@@ -96,19 +102,26 @@ install_ruby_requeriments() {
 }
 
 install_rbenv_and_plugins() {
-    if [ -e "$TARGET_HOME/.rbenv" ]; then rm -rf "$TARGET_HOME/.rbenv"; fi
-    git clone "$URL_RBENV" "$TARGET_HOME/.rbenv"
-    git clone "$URL_RUBY_BUILD" "$TARGET_HOME/.rbenv/plugins/ruby-build"
-    if ! grep -q 'rbenv/bin' "$TARGET_HOME/.bashrc"; then
-        echo 'export PATH=$HOME/.rbenv/bin:$PATH' >> "$TARGET_HOME/.bashrc"
+    if [ -e "$TARGET_HOME/.rbenv" ] && [ $FORCE == true ]; then
+        rm -rf "$TARGET_HOME/.rbenv"
     fi
-    if ! grep -q '(rbenv init -)' "$TARGET_HOME/.bashrc"; then
-        echo "eval \"\$(rbenv init -)\"" >> "$TARGET_HOME/.bashrc"
+    if [ ! -e "$TARGET_HOME/.rbenv" ]; then
+        git clone "$URL_RBENV" "$TARGET_HOME/.rbenv"
+        git clone "$URL_RUBY_BUILD" "$TARGET_HOME/.rbenv/plugins/ruby-build"
+        if ! grep -q 'rbenv/bin' "$TARGET_HOME/.bashrc"; then
+            echo 'export PATH=$HOME/.rbenv/bin:$PATH' >> "$TARGET_HOME/.bashrc"
+        fi
+        if ! grep -q '(rbenv init -)' "$TARGET_HOME/.bashrc"; then
+            echo "eval \"\$(rbenv init -)\"" >> "$TARGET_HOME/.bashrc"
+        fi
+        if ! grep -q 'node=nodejs' "$TARGET_HOME/.bashrc"; then
+            echo 'alias node=nodejs' >> "$HOME/.bashrc"
+        fi
+        chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME"
+    else
+       cd "$TARGET_HOME/.rbenv/plugins/ruby-build"
+       git pull
     fi
-    if ! grep -q 'node=nodejs' "$TARGET_HOME/.bashrc"; then
-        echo 'alias node=nodejs' >> "$HOME/.bashrc"
-    fi
-    chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME"
 }
 
 install_nodejs_and_yarn() {
@@ -158,9 +171,17 @@ install_ruby_and_gems() {
                        tail -1)
     fi
 
-    _run_as_target_user "$RBENV_BIN install $RUBY_VERSION"
-    _run_as_target_user "$RBENV_BIN global $RUBY_VERSION"
-    _run_as_target_user "$GEM_BIN install bundle"
+    if [ -z "$(which ruby)" ]; then
+        CURRENT_RUBY_VERSION=''
+    else
+        CURRENT_RUBY_VERSION="$(ruby -v | awk '{ print $2 }')"
+    fi
+
+    if [[ $FORCE == true || ! $CURRENT_RUBY_VERSION =~ $RUBY_VERSION ]]; then
+        _run_as_target_user "$RBENV_BIN install $RUBY_VERSION"
+        _run_as_target_user "$RBENV_BIN global $RUBY_VERSION"
+        _run_as_target_user "$GEM_BIN install bundle"
+    fi
 
     if [ -e Gemfile ]; then
         i_echo "Found Gemfile"
@@ -169,7 +190,6 @@ install_ruby_and_gems() {
         w_echo "Not found Gemfile"
         i_echo "Installing the latest stable ruby on rails version"
         _run_as_target_user "$GEM_BIN install rails"
-        _run_as_target_user "$GEM_BIN install bundle"
     fi
 }
 
