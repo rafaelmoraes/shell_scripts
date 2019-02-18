@@ -146,22 +146,23 @@ _run_as_target_user() {
 
 install_ruby(){
     source "$TARGET_HOME/.bashrc"
-    if [ ! -z "$(which ruby)" ]; then
-        CURRENT_RUBY_VERSION=$(ruby --version | awk '{ print $2 }')
+
+    script_name="install_ruby_$(date +%s).sh"
+    curl -o "$script_name" "$URL_SCRIPT_INSTALL_RUBY"
+    chmod +x "$script_name"
+
+    options="-u $TARGET_USER"
+
+    if [ "$RUBY_VERSION" != 'latest' ]; then
+        options="$options -rv $RUBY_VERSION"
     fi
 
-    if [ $FORCE ] || [ "$RUBY_VERSION" != "$CURRENT_RUBY_VERSION" ]; then
-        script_name="install_ruby_$(date +%s).sh"
-        curl -o "$script_name" "$URL_SCRIPT_INSTALL_RUBY"
-        chmod +x "$script_name"
-        if [ "$RUBY_VERSION" == 'latest' ]; then
-            ./"$script_name" -u "$TARGET_USER"
-        else
-            ./"$script_name" -u "$TARGET_USER" -rv "$RUBY_VERSION"
-        fi
-        rm -f "$script_name"
-        source "$TARGET_HOME/.bashrc"
+    if [ $FORCE == true ]; then
+        options="$options --force"
     fi
+    ./$script_name $options
+    rm -f "$script_name"
+    source "$TARGET_HOME/.bashrc"
 }
 
 install_rails() {
