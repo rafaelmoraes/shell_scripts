@@ -38,17 +38,24 @@ Parameters list
     -f, --force             Force reinstallation of rbenv and ruby (default: $FORCE)
     -h, --help              Show usage"
 
+set_target() {
+    TARGET_USER="$1"
+    if [ "$1" == 'root' ]; then
+        TARGET_HOME='/root'
+    else
+        TARGET_HOME="/home/$TARGET_USER"
+    fi
+}
+
 apply_options() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
             -u)
-                TARGET_USER="$2"
-                TARGET_HOME="/home/$TARGET_USER"
+                set_target "$2"
                 shift 2
             ;;
             --user=*)
-                TARGET_USER="${1#*=}"
-                TARGET_HOME="/home/$TARGET_USER"
+                set_target "${1#*=}"
                 shift 1
             ;;
             -rv)
