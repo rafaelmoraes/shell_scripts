@@ -2,13 +2,12 @@
 ##############################################################################
 # install_ruby_on_rails.sh
 # -----------
-# Script to install the latest stable Ruby on Rails or the version present on
-# GEMFILE and .ruby-version if they exist
+# Script to install the Ruby on Rails on Debian
 #
 #
 # :AUTHORS: Rafael Moraes <roliveira.moraes@gmail.com>
-# :DATE: 2019-02-11
-# :VERSION: 0.0.9
+# :DATE: 2019-02-18
+# :VERSION: 1.0.0
 ##############################################################################
 
 set -euo pipefail
@@ -22,9 +21,10 @@ exit_is_not_superuser() {
 }
 
 # VARIABLES
-URL_RBENV='https://github.com/rbenv/rbenv.git'
-URL_RUBY_BUILD='https://github.com/sstephenson/ruby-build.git'
-
+URL_SCRIPT_INSTALL_RUBY='https://raw.githubusercontent.com/rafaelmoraes/shell_scripts/master/debian/installers/install_ruby.sh'
+RAILS_VERSION='latest'
+RUBY_VERSION='latest'
+CURRENT_RUBY_VERSION=''
 FORCE=false
 DATABASE="postgresql"
 TARGET_USER="$(whoami)"
@@ -32,14 +32,41 @@ TARGET_HOME="$HOME"
 HELP_MESSAGE="Usage: ./install_ruby_on_rails.sh [OPTIONS]
 
 Parameters list
-    -db, --database=    Set the database supported (default: $DATABASE)
-    -u, --user=         Set the user target of the installation (default: $HOME)
-    -f, --force         Force reinstallation of rbenv and ruby (default: $FORCE)
-    -h, --help          Show usage"
+    -rav, --rails-version=    Set ruby on rails version to install (default: $RAILS_VERSION)
+    -rv, ruby-version=        Set ruby version to install (default: $RUBY_VERSION)
+    -db, --database=          Set the database supported (default: $DATABASE)
+    -u, --user=               Set the user target of the installation (default: $HOME)
+    -f, --force               Force reinstallation of rbenv and ruby (default: $FORCE)
+    -h, --help                Show usage"
+
+set_target() {
+    TARGET_USER="$1"
+    if [ "$1" == 'root' ]; then
+        TARGET_HOME='/root'
+    else
+        TARGET_HOME="/home/$TARGET_USER"
+    fi
+}
 
 apply_options() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
+            -rv)
+                RUBY_VERSION="$2"
+                shift 2
+            ;;
+            --ruby-version=*)
+                RUBY_VERSION="${1#*=}"
+                shift 1
+            ;;
+            -rav)
+                RAILS_VERSION="$2"
+                shift 2
+            ;;
+            --rails-version=*)
+                RAILS_VERSION="${1#*=}"
+                shift 1
+            ;;
             -db)
                 DATABASE="$2"
                 shift 2
@@ -49,13 +76,11 @@ apply_options() {
                 shift 1
             ;;
             -u)
-                TARGET_USER="$2"
-                TARGET_HOME="/home/$TARGET_USER"
+                set_target "$2"
                 shift 2
             ;;
             --user=*)
-                TARGET_USER="${1#*=}"
-                TARGET_HOME="/home/$TARGET_USER"
+                set_target "${1#*=}"
                 shift 1
             ;;
             -f|--force)
@@ -70,11 +95,12 @@ apply_options() {
 }
 
 set_up_base() {
-    export LC_ALL=C
-    export LANG=en_US.utf8
-    export LANGUAGE=en_US.utf8
     export DEBIAN_FRONTEND=noninteractive
-
+    set +u
+    if [ -z "$LC_ALL" ]; then export LC_ALL=C; fi
+    if [ -z "$LANG" ]; then export LANG=en_US.utf8; fi
+    if [ -z "$LANGUAGE" ]; then export LANGUAGE=en_US.utf8; fi
+    set -u
     apt update
     apt upgrade -y
     apt install -y --no-install-recommends \
@@ -84,47 +110,7 @@ set_up_base() {
         gnupg
 }
 
-install_ruby_requeriments() {
-    apt-get install -y --no-install-recommends \
-            curl \
-            git \
-            autoconf \
-            bison \
-            build-essential \
-            libssl-dev \
-            libyaml-dev \
-            libreadline6-dev \
-            zlib1g-dev \
-            libncurses5-dev \
-            libffi-dev \
-            libgdbm3 \
-            libgdbm-dev
-}
-
-install_rbenv_and_plugins() {
-    if [ -e "$TARGET_HOME/.rbenv" ] && [ $FORCE == true ]; then
-        rm -rf "$TARGET_HOME/.rbenv"
-    fi
-    if [ ! -e "$TARGET_HOME/.rbenv" ]; then
-        git clone "$URL_RBENV" "$TARGET_HOME/.rbenv"
-        git clone "$URL_RUBY_BUILD" "$TARGET_HOME/.rbenv/plugins/ruby-build"
-        if ! grep -q 'rbenv/bin' "$TARGET_HOME/.bashrc"; then
-            echo 'export PATH=$HOME/.rbenv/bin:$PATH' >> "$TARGET_HOME/.bashrc"
-        fi
-        if ! grep -q '(rbenv init -)' "$TARGET_HOME/.bashrc"; then
-            echo "eval \"\$(rbenv init -)\"" >> "$TARGET_HOME/.bashrc"
-        fi
-        if ! grep -q 'node=nodejs' "$TARGET_HOME/.bashrc"; then
-            echo 'alias node=nodejs' >> "$HOME/.bashrc"
-        fi
-        chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME"
-    else
-       cd "$TARGET_HOME/.rbenv/plugins/ruby-build"
-       git pull
-    fi
-}
-
-install_nodejs_and_yarn() {
+install_javascript_support() {
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | \
 		  tee /etc/apt/sources.list.d/yarn.list
@@ -132,6 +118,10 @@ install_nodejs_and_yarn() {
     apt-get install -y --no-install-recommends \
             nodejs \
             yarn
+    if ! grep -q 'node=nodejs' "$TARGET_HOME/.bashrc"; then
+        echo 'alias node=nodejs' >> "$HOME/.bashrc"
+    fi
+    chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME"
 }
 
 install_database_support() {
@@ -154,42 +144,37 @@ _run_as_target_user() {
     runuser -l "$TARGET_USER" -c "$@"
 }
 
-install_ruby_and_gems() {
-    RBENV_BIN="$TARGET_HOME/.rbenv/bin/rbenv"
-    GEM_BIN="$TARGET_HOME/.rbenv/shims/gem"
-    BUNDLE_BIN="$TARGET_HOME/.rbenv/shims/bundle"
-
-    if [ -e .ruby-version ]; then
-        i_echo "Found .ruby-version"
-        RUBY_VERSION="$(cat .ruby-version)"
-    else
-        w_echo "Not found .ruby-version"
-        i_echo "Installing the latest stable ruby version"
-        RUBY_VERSION=$(_run_as_target_user "$RBENV_BIN install -l" |\
-                       grep -v - |\
-                       awk '{ print $NF }' |\
-                       tail -1)
+install_ruby(){
+    source "$TARGET_HOME/.bashrc"
+    if [ ! -z "$(which ruby)" ]; then
+        CURRENT_RUBY_VERSION=$(ruby --version | awk '{ print $2 }')
     fi
 
-    if [ -z "$(which ruby)" ]; then
-        CURRENT_RUBY_VERSION=''
-    else
-        CURRENT_RUBY_VERSION="$(ruby -v | awk '{ print $2 }')"
+    if [ $FORCE ] || [ "$RUBY_VERSION" != "$CURRENT_RUBY_VERSION" ]; then
+        script_name="install_ruby_$(date +%s).sh"
+        curl -o "$script_name" "$URL_SCRIPT_INSTALL_RUBY"
+        chmod +x "$script_name"
+        if [ "$RUBY_VERSION" == 'latest' ]; then
+            ./"$script_name" -u "$TARGET_USER"
+        else
+            ./"$script_name" -u "$TARGET_USER" -rv "$RUBY_VERSION"
+        fi
+        rm -f "$script_name"
+        source "$TARGET_HOME/.bashrc"
     fi
+}
 
-    if [[ $FORCE == true || ! $CURRENT_RUBY_VERSION =~ $RUBY_VERSION ]]; then
-        _run_as_target_user "$RBENV_BIN install $RUBY_VERSION"
-        _run_as_target_user "$RBENV_BIN global $RUBY_VERSION"
-        _run_as_target_user "$GEM_BIN install bundle"
-    fi
-
-    if [ -e Gemfile ]; then
+install_rails() {
+    if [ "$RAILS_VERSION" != 'latest' ]; then
+        i_echo "Installing Ruby on Rails $RAILS_VERSION"
+        _run_as_target_user "gem install rails -v $RAILS_VERSION"
+    elif [ -e Gemfile ]; then
         i_echo "Found Gemfile"
-        _run_as_target_user "$BUNDLE_BIN install --gemfile=$(pwd)/Gemfile"
+        _run_as_target_user "bundle install --gemfile=$(pwd)/Gemfile"
     else
         w_echo "Not found Gemfile"
         i_echo "Installing the latest stable ruby on rails version"
-        _run_as_target_user "$GEM_BIN install rails"
+        _run_as_target_user "gem install rails"
     fi
 }
 
@@ -199,11 +184,10 @@ main() {
     i_echo "Install Ruby on Rails"
 
     set_up_base
-    install_ruby_requeriments
-    install_rbenv_and_plugins
-    install_nodejs_and_yarn
+    install_ruby
+    install_javascript_support
     install_database_support
-    install_ruby_and_gems
+    install_rails
 
     i_echo "Ruby on Rails installed successfully"
 }
