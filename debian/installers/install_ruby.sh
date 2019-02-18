@@ -30,12 +30,13 @@ RUBY_VERSION=''
 NEED_SETUP_BASE=true
 TARGET_USER="$(whoami)"
 TARGET_HOME="$HOME"
-HELP_MESSAGE="Usage: ./install_ruby_on_rails.sh [OPTIONS]
+HELP_MESSAGE="Usage: ./install_ruby.sh [OPTIONS]
 
 Parameters list
-    -u, --user=         Set the user target of the installation (default: $HOME)
-    -f, --force         Force reinstallation of rbenv and ruby (default: $FORCE)
-    -h, --help          Show usage"
+    -u, --user=             Set the user target of the installation (default: $HOME)
+    -rv, --ruby-version=    Set ruby version to install (default: latest)
+    -f, --force             Force reinstallation of rbenv and ruby (default: $FORCE)
+    -h, --help              Show usage"
 
 apply_options() {
     while [ "$#" -gt 0 ]; do
