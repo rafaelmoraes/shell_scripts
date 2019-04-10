@@ -179,9 +179,9 @@ reencode() {
         reencode_time=$(_reencode_duration "$reencode_start_time_in_seconds")
         i_echo "Total time: $reencode_time"
         echo ""
-        echo true
+        return 0
     else
-        echo false
+        return 1
     fi
 }
 
@@ -197,7 +197,7 @@ main() {
         reencode_count=0
         for file in *.{mp4,mkv,flv,wmv,avi,mov}; do
             IN=$file
-            if [[ $(reencode) == true ]]; then
+            if reencode; then
                reencode_count=$((reencode_count + 1))
             fi
         done
