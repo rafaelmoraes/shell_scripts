@@ -29,7 +29,7 @@ Parameters list
   -o, --output=             Output file
   -c, --crf=                Sets CRF, increase the value increases the output file size, what usually does not mean better quality(default: $CRF)
   -b, --bits=               Sets the amount of bits to represent the video colors(default: $BITS, available: 8, 10 or 12)
-  -npi, --no-delete-input   Prevents to delete the input video file after reencode
+  -ndi, --no-delete-input   Prevents to delete the input video file after reencode
   -a, --all                 Tries to re-encode all files present at the current directory
   -h, --help    Show help."
 
@@ -49,7 +49,7 @@ apply_options() {
             -b) BITS="$2"; shift 2;;
             --bits=*) BITS="${1#*=}"; shift 1;;
 
-            -npi|--no-delete-input) DELETE_IN=false; shift 1;;
+            -ndi|--no-delete-input) DELETE_IN=false; shift 1;;
 
             -a|--all) ALL_FILES=true; shift 1;;
 
